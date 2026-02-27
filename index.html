@@ -526,6 +526,41 @@ function reloadUI(){
   renderPriceSettings();
 }
 
+
+// ─────────────────────────────────────────────
+//  IMAGE COMPRESSION (max 60KB to stay under JSONBin 100KB limit)
+// ─────────────────────────────────────────────
+function compressImage(file, maxKB=60){
+  return new Promise((resolve)=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        // Resize to max 200x200px
+        let w=img.width, h=img.height;
+        const max=200;
+        if(w>max||h>max){
+          if(w>h){h=Math.round(h*max/w);w=max;}
+          else{w=Math.round(w*max/h);h=max;}
+        }
+        canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        // Compress quality until under maxKB
+        let quality=0.8;
+        let result=canvas.toDataURL('image/jpeg',quality);
+        while(result.length > maxKB*1024*1.37 && quality > 0.2){
+          quality-=0.1;
+          result=canvas.toDataURL('image/jpeg',quality);
+        }
+        resolve(result);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ─────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────
@@ -554,16 +589,12 @@ function avatarEl(w,cls=''){
   return`<div class="avatar-placeholder ${cls}">${init}</div>`;
 }
 
-function previewNewAvatar(e){
+async function previewNewAvatar(e){
   const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    newAvatarData=ev.target.result;
-    const ring=document.getElementById('new-avatar-ring');
-    ring.innerHTML=`<img src="${newAvatarData}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">`;
-    ring.classList.add('has-img');
-  };
-  reader.readAsDataURL(file);
+  newAvatarData=await compressImage(file);
+  const ring=document.getElementById('new-avatar-ring');
+  ring.innerHTML=`<img src="${newAvatarData}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">`;
+  ring.classList.add('has-img');
 }
 
 function buildWorkerPicker(){
@@ -800,15 +831,11 @@ function renderSettingsWorkers(){
   `).join('');
 }
 
-function changeWorkerAvatar(i,e){
+async function changeWorkerAvatar(i,e){
   const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    workers[i].avatar=ev.target.result;
-    renderSettingsWorkers();buildWorkerPicker();
-    await pushData();
-  };
-  reader.readAsDataURL(file);
+  workers[i].avatar=await compressImage(file);
+  renderSettingsWorkers();buildWorkerPicker();
+  await pushData();
 }
 
 async function addWorker(){
