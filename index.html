@@ -18,6 +18,25 @@
 body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',sans-serif;min-height:100vh;}
 
 
+
+/* ── WORK TIMER ── */
+.timer-card{background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff;border:none;}
+.timer-card .card-head{color:rgba(255,255,255,.38);border-color:rgba(255,255,255,.1);}
+.timer-display{font-family:'DM Mono',monospace;font-size:3rem;font-weight:500;letter-spacing:4px;text-align:center;color:#fff;padding:.5rem 0;line-height:1;}
+.timer-status{text-align:center;font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.3rem;margin-bottom:1rem;min-height:1.2em;}
+.timer-status.running{color:#4ade80;}
+.timer-status.paused{color:#fbbf24;}
+.timer-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;}
+.timer-log{margin-top:1rem;border-top:1px solid rgba(255,255,255,.1);padding-top:.8rem;}
+.timer-log-title{font-size:.65rem;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:.5rem;}
+.timer-log-list{display:flex;flex-direction:column;gap:.3rem;max-height:130px;overflow-y:auto;}
+.timer-log-item{display:flex;justify-content:space-between;font-size:.76rem;color:rgba(255,255,255,.55);font-family:'DM Mono',monospace;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.timer-log-item .tl-label{color:rgba(255,255,255,.35);}
+.timer-total-row{display:flex;justify-content:space-between;margin-top:.5rem;padding-top:.5rem;border-top:1px solid rgba(255,255,255,.15);font-size:.83rem;color:#fff;font-family:'DM Mono',monospace;font-weight:500;}
+.bonus-rate-field{display:flex;align-items:center;gap:.5rem;}
+.bonus-rate-field input{width:70px;text-align:center;}
+.bonus-rate-field span{font-size:.88rem;font-weight:700;}
+
 /* ── SYNC STATUS BAR ── */
 #sync-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;background:transparent;transition:background .3s;}
 #sync-bar.loading{background:linear-gradient(90deg,var(--accent) 40%,transparent 100%);animation:pulse 1s infinite;}
@@ -266,6 +285,27 @@ textarea{resize:vertical;min-height:66px;}
     <div class="proc-list" id="proc-list"></div>
   </div>
 
+
+  <div class="card timer-card no-print">
+    <div class="card-head">⏱ 作業時間タイマー <span style="font-size:.6rem;opacity:.4;font-weight:400;">（税務資料用）</span></div>
+    <div class="timer-display" id="timer-display">00:00:00</div>
+    <div class="timer-status" id="timer-status">待機中</div>
+    <div class="timer-btns">
+      <button class="btn btn-green" id="timer-start-btn" onclick="timerStart()">▶ 開始</button>
+      <button class="btn" id="timer-pause-btn" onclick="timerPause()" style="background:rgba(255,255,255,.1);color:#fbbf24;border:1px solid rgba(255,255,255,.15);" disabled>⏸ 休憩</button>
+      <button class="btn btn-secondary btn-sm" onclick="timerReset()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);">↺ リセット</button>
+      <button class="btn btn-primary btn-sm" onclick="timerApply()" style="background:#1a56db;">✓ 時間を反映</button>
+    </div>
+    <div class="timer-log">
+      <div class="timer-log-title">作業ログ</div>
+      <div class="timer-log-list" id="timer-log-list"><div style="color:rgba(255,255,255,.25);font-size:.75rem;">開始すると記録されます</div></div>
+      <div class="timer-total-row">
+        <span>作業合計</span>
+        <span id="timer-total-display">0時間00分</span>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-head">🕐 会議・他業務</div>
     <div class="proc-header" style="margin-bottom:.4rem;"><span>種別</span><span>時給</span><span>時間数</span><span>小計</span></div>
@@ -277,9 +317,16 @@ textarea{resize:vertical;min-height:66px;}
     </div>
   </div>
 
-  <div class="bonus-toggle no-print" id="bonus-toggle" onclick="toggleBonus()">
-    <div class="tog-switch"></div>
-    <div class="tog-text"><div class="tog-main">＋10% 上乗せ</div><div class="tog-sub">最終金額に10%を加算する（対象者のみ）</div></div>
+  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.9rem;">
+    <div class="bonus-toggle no-print" id="bonus-toggle" onclick="toggleBonus()" style="flex:1;min-width:220px;margin-bottom:0;">
+      <div class="tog-switch"></div>
+      <div class="tog-text"><div class="tog-main" id="bonus-label">＋10% 上乗せ</div><div class="tog-sub">最終金額に上乗せする（対象者のみ）</div></div>
+    </div>
+    <div class="bonus-rate-field no-print" style="background:#f0f4ff;border:1.5px solid #99aadd;border-radius:7px;padding:.55rem .85rem;">
+      <span style="font-size:.75rem;color:var(--muted);font-weight:700;">率：</span>
+      <input type="number" id="bonus-rate-input" value="10" min="1" max="100" step="1" style="width:60px;text-align:center;font-family:'DM Mono',monospace;" oninput="updateBonusRate()">
+      <span>%</span>
+    </div>
   </div>
 
   <div class="card total-card" style="margin-top:.9rem;">
@@ -353,6 +400,22 @@ textarea{resize:vertical;min-height:66px;}
     </div>
   </div>
 
+
+  <div class="card">
+    <div class="card-head">💹 上乗せ率設定</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem;">デフォルトの上乗せ率を設定します。給料入力画面でも変更できます。</p>
+    <div class="field-row col2">
+      <div class="field">
+        <label>デフォルト上乗せ率（%）</label>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <input type="number" id="setting-bonus-rate" min="1" max="100" value="10" style="width:100px;">
+          <span style="font-size:.88rem;color:var(--muted);">%</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:.5rem;" onclick="saveBonusRateSetting(event)">保存</button>
+  </div>
+
   <div class="card">
     <div class="card-head">📦 加工オプション管理</div>
     <div id="price-settings-list" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem;"></div>
@@ -409,10 +472,18 @@ const HOURLY_RATE=1200;
 let processes = DEFAULT_PROCESSES.slice();
 let workers = [];
 let records = [];
-let settings = {company:'WMS',manager:'',address:''};
+let settings = {company:'WMS',manager:'',address:'',bonusRate:10};
 let bonusOn = false;
+let bonusRate = 10; // %
 let newAvatarData = null;
 let isSyncing = false;
+
+// ── TIMER STATE ──
+let timerInterval = null;
+let timerRunning = false;
+let timerElapsed = 0;    // ms, total work time
+let timerSessionStart = null; // Date when current session started
+let timerLog = []; // [{type:'開始'|'休憩'|'再開'|'終了', time:Date}]
 
 // ─────────────────────────────────────────────
 //  API KEY GATE
@@ -441,6 +512,121 @@ function setSyncBar(state){
   bar.className='';
   void bar.offsetWidth;
   bar.className=state;
+}
+
+
+// ─────────────────────────────────────────────
+//  WORK TIMER
+// ─────────────────────────────────────────────
+function timerTick(){
+  const now=Date.now();
+  const total=timerElapsed+(now-timerSessionStart);
+  const h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000),s=Math.floor((total%60000)/1000);
+  document.getElementById('timer-display').textContent=
+    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function timerStart(){
+  if(timerRunning)return;
+  timerRunning=true;
+  timerSessionStart=Date.now();
+  timerInterval=setInterval(timerTick,500);
+  const label=timerElapsed===0?'開始':'再開';
+  timerLog.push({type:label,time:new Date()});
+  renderTimerLog();
+  document.getElementById('timer-status').textContent='作業中';
+  document.getElementById('timer-status').className='timer-status running';
+  document.getElementById('timer-start-btn').disabled=true;
+  document.getElementById('timer-pause-btn').disabled=false;
+}
+
+function timerPause(){
+  if(!timerRunning)return;
+  timerRunning=false;
+  timerElapsed+=Date.now()-timerSessionStart;
+  clearInterval(timerInterval);
+  timerLog.push({type:'休憩',time:new Date()});
+  renderTimerLog();
+  document.getElementById('timer-status').textContent='休憩中';
+  document.getElementById('timer-status').className='timer-status paused';
+  document.getElementById('timer-start-btn').disabled=false;
+  document.getElementById('timer-pause-btn').disabled=true;
+}
+
+function timerReset(){
+  if(!confirm('タイマーをリセットしますか？ログもクリアされます。'))return;
+  timerRunning=false;
+  clearInterval(timerInterval);
+  timerElapsed=0;
+  timerSessionStart=null;
+  timerLog=[];
+  document.getElementById('timer-display').textContent='00:00:00';
+  document.getElementById('timer-status').textContent='待機中';
+  document.getElementById('timer-status').className='timer-status';
+  document.getElementById('timer-start-btn').disabled=false;
+  document.getElementById('timer-pause-btn').disabled=true;
+  document.getElementById('timer-log-list').innerHTML='<div style="color:rgba(255,255,255,.25);font-size:.75rem;">開始すると記録されます</div>';
+  document.getElementById('timer-total-display').textContent='0時間00分';
+}
+
+function timerApply(){
+  // Stop if running
+  if(timerRunning){timerPause();}
+  if(timerElapsed===0){alert('タイマーを開始してください');return;}
+  timerLog.push({type:'終了',time:new Date()});
+  renderTimerLog();
+  // Convert to hours (rounded to 0.5)
+  const totalHours=timerElapsed/3600000;
+  const rounded=Math.round(totalHours*2)/2;
+  document.getElementById('hourly-hours').value=rounded;
+  calculate();
+  // Build log text for remarks
+  const logText=timerLog.map(l=>`[${l.time.toLocaleTimeString('ja-JP')}] ${l.type}`).join('\n');
+  const existing=document.getElementById('remarks').value;
+  document.getElementById('remarks').value=(existing?existing+'\n':'')+'【作業ログ】\n'+logText;
+  document.getElementById('timer-status').textContent=`反映済み（${rounded}時間）`;
+  document.getElementById('timer-status').className='timer-status';
+  document.getElementById('timer-start-btn').disabled=true;
+}
+
+function renderTimerLog(){
+  const el=document.getElementById('timer-log-list');
+  el.innerHTML=timerLog.map(l=>`
+    <div class="timer-log-item">
+      <span>${l.time.toLocaleTimeString('ja-JP')}</span>
+      <span class="tl-label">${l.type}</span>
+    </div>
+  `).join('');
+  el.scrollTop=el.scrollHeight;
+  // Update total
+  const total=timerElapsed+(timerRunning?Date.now()-timerSessionStart:0);
+  const h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  document.getElementById('timer-total-display').textContent=`${h}時間${String(m).padStart(2,'0')}分`;
+}
+
+// ─────────────────────────────────────────────
+//  BONUS RATE
+// ─────────────────────────────────────────────
+function updateBonusRate(){
+  const v=parseInt(document.getElementById('bonus-rate-input')?.value)||10;
+  bonusRate=Math.max(1,Math.min(100,v));
+  document.getElementById('bonus-label').textContent=`＋${bonusRate}% 上乗せ`;
+  calculate();
+}
+
+async function saveBonusRateSetting(e){
+  const v=parseInt(document.getElementById('setting-bonus-rate').value)||10;
+  settings.bonusRate=Math.max(1,Math.min(100,v));
+  bonusRate=settings.bonusRate;
+  const inp=document.getElementById('bonus-rate-input');
+  if(inp)inp.value=bonusRate;
+  if(document.getElementById('bonus-label'))
+    document.getElementById('bonus-label').textContent=`＋${bonusRate}% 上乗せ`;
+  calculate();
+  const btn=e.currentTarget;btn.textContent='⏳ 保存中...';btn.disabled=true;
+  await pushData();
+  btn.textContent='✅ 保存しました';
+  setTimeout(()=>{btn.textContent='保存';btn.disabled=false;},1500);
 }
 
 // ─────────────────────────────────────────────
@@ -657,7 +843,7 @@ function calculate(){
   if(hRow)hRow.classList.toggle('has-value',hours>0);
   if(hours>0)items.push({name:`会議・他業務 (${hours}h)`,price:HOURLY_RATE,qty:hours,sub:hSub,isHourly:true});
   baseTotal+=hSub;
-  const bonusAmt=bonusOn?Math.round(baseTotal*.1):0;
+  const bonusAmt=bonusOn?Math.round(baseTotal*(bonusRate/100)):0;
   const total=baseTotal+bonusAmt;
   const bd=document.getElementById('breakdown-rows');bd.innerHTML='';
   if(!items.length){
@@ -673,7 +859,7 @@ function calculate(){
       const r1=document.createElement('div');r1.className='total-row bold';
       r1.innerHTML=`<span>小計</span><span>¥${baseTotal.toLocaleString()}</span>`;bd.appendChild(r1);
       const r2=document.createElement('div');r2.className='total-row bold';
-      r2.innerHTML=`<span>＋10% 上乗せ</span><span>¥${bonusAmt.toLocaleString()}</span>`;bd.appendChild(r2);
+      r2.innerHTML=`<span>＋${bonusRate}% 上乗せ</span><span>¥${bonusAmt.toLocaleString()}</span>`;bd.appendChild(r2);
     }
   }
   document.getElementById('grand-total-display').textContent='¥'+total.toLocaleString();
@@ -698,8 +884,9 @@ async function saveRecord(e){
   const avatar=wObj?wObj.avatar||null:null;
   const record={
     id:Date.now(),date,name,address,remarks,avatar,
-    bonusOn,bonusAmt,items,baseTotal,total,
+    bonusOn,bonusAmt,bonusRate,items,baseTotal,total,
     hours:parseFloat(document.getElementById('hourly-hours').value)||0,
+    timerLog:[...timerLog],
     createdAt:new Date().toLocaleString('ja-JP')
   };
   records.unshift(record);
@@ -724,6 +911,15 @@ function resetForm(){
   bonusOn=false;
   document.getElementById('bonus-toggle').classList.remove('on');
   document.querySelectorAll('.worker-chip').forEach(c=>c.classList.remove('selected'));
+  // Reset timer
+  timerRunning=false;clearInterval(timerInterval);timerElapsed=0;timerSessionStart=null;timerLog=[];
+  document.getElementById('timer-display').textContent='00:00:00';
+  document.getElementById('timer-status').textContent='待機中';
+  document.getElementById('timer-status').className='timer-status';
+  document.getElementById('timer-start-btn').disabled=false;
+  document.getElementById('timer-pause-btn').disabled=true;
+  document.getElementById('timer-log-list').innerHTML='<div style="color:rgba(255,255,255,.25);font-size:.75rem;">開始すると記録されます</div>';
+  document.getElementById('timer-total-display').textContent='0時間00分';
   calculate();
 }
 
@@ -909,6 +1105,13 @@ function loadCompanySettings(){
   document.getElementById('setting-company').value=settings.company||'WMS';
   document.getElementById('setting-manager').value=settings.manager||'';
   document.getElementById('setting-address').value=settings.address||'';
+  bonusRate=settings.bonusRate||10;
+  const rateEl=document.getElementById('setting-bonus-rate');
+  if(rateEl)rateEl.value=bonusRate;
+  const inp=document.getElementById('bonus-rate-input');
+  if(inp)inp.value=bonusRate;
+  const lbl=document.getElementById('bonus-label');
+  if(lbl)lbl.textContent=`＋${bonusRate}% 上乗せ`;
 }
 
 async function saveCompanySettings(e){
