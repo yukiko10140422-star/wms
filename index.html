@@ -220,9 +220,121 @@ textarea{resize:vertical;min-height:68px;}
 .icon-btn{background:none;border:none;cursor:pointer;padding:.22rem .38rem;border-radius:5px;font-size:.8rem;}
 .icon-btn:hover{background:var(--mango-light);}
 @media print{.no-print{display:none!important}}
+
+/* ── MOBILE RESPONSIVE ── */
+.mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:linear-gradient(90deg,#e65c00,#ff8c00);padding:.7rem 1rem;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.mobile-brand{display:flex;align-items:center;gap:.5rem;color:#fff;font-weight:900;font-size:.98rem;}
+.mobile-brand .mlogo{font-size:1.25rem;}
+.hamburger{background:none;border:none;cursor:pointer;padding:.28rem;display:flex;flex-direction:column;gap:5px;}
+.hamburger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .2s;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mobile-drawer{position:fixed;inset:0;z-index:190;pointer-events:none;}
+.mobile-drawer.open{pointer-events:auto;}
+.drawer-backdrop{position:absolute;inset:0;background:rgba(45,26,0,.55);opacity:0;transition:opacity .25s;}
+.mobile-drawer.open .drawer-backdrop{opacity:1;}
+.drawer-panel{position:absolute;top:0;left:0;bottom:0;width:255px;background:linear-gradient(180deg,#e65c00,#ff8c00 50%,#ffa000);padding:4.5rem 1rem 1.5rem;display:flex;flex-direction:column;gap:1.3rem;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
+.mobile-drawer.open .drawer-panel{transform:translateX(0);}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);padding:.42rem 0 calc(.42rem + env(safe-area-inset-bottom,0px));z-index:150;box-shadow:0 -2px 12px rgba(255,140,0,.12);}
+.bottom-nav-inner{display:flex;justify-content:space-around;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:.15rem;background:none;border:none;cursor:pointer;padding:.28rem .7rem;color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:.57rem;font-weight:700;min-width:58px;}
+.bnav-btn .bi{font-size:1.18rem;}
+.bnav-btn.active{color:var(--mango-dark);}
+.asheet{position:fixed;inset:0;z-index:190;pointer-events:none;}
+.asheet.open{pointer-events:auto;}
+.asheet-back{position:absolute;inset:0;background:rgba(45,26,0,.45);opacity:0;transition:opacity .22s;}
+.asheet.open .asheet-back{opacity:1;}
+.asheet-panel{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:1.1rem 1rem calc(1.1rem + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);}
+.asheet.open .asheet-panel{transform:translateY(0);}
+.asheet-handle{width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto .85rem;}
+.asheet-title{font-size:.63rem;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:.55rem;}
+.asheet-btn{display:flex;align-items:center;gap:.5rem;width:100%;background:var(--mango-light);border:none;color:var(--ink);padding:.52rem .75rem;border-radius:9px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:.86rem;font-weight:700;margin-bottom:.35rem;}
+.asheet-btn:hover{background:#ffe0b2;}
+@media(max-width:700px){
+  .mobile-topbar{display:flex;}
+  .sidebar{display:none;}
+  .main{padding:.85rem;padding-top:4.1rem;padding-bottom:5rem;}
+  .bottom-nav{display:block;}
+  .field-row.col2>*,.field-row.col3>*{min-width:100%;flex:none;width:100%;}
+  .proc-header{grid-template-columns:1fr 58px 58px 62px;font-size:.59rem;}
+  .proc-row{grid-template-columns:1fr 58px 58px 62px;}
+  .proc-name{font-size:.77rem;}
+  .proc-subtotal{font-size:.74rem;}
+  .timer-display{font-size:2rem;letter-spacing:2px;}
+  .timer-btns .btn{font-size:.73rem;padding:.4rem .65rem;}
+  .gt-amount{font-size:1.35rem;}
+  .worker-chip{font-size:.77rem;padding:.36rem .65rem;}
+  .history-card-head{flex-wrap:wrap;gap:.4rem;padding:.65rem .82rem;}
+  .history-amount{font-size:.86rem;}
+  .month-summary{gap:.75rem;}
+  .shift-day{font-size:.72rem;}
+  .worker-grid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));}
+  .modal-box{width:97vw;}
+  .pw-box{padding:1.45rem;}
+  .page-header h2{font-size:1.12rem;}
+  .card{padding:.88rem .95rem;}
+  .history-controls{flex-direction:column;gap:.45rem;}
+  .print-overlay{padding:.6rem;}
+  .print-actions{flex-direction:column;align-items:center;}
+  .sync-toast{bottom:5rem;}
+  .bonus-toggle{flex-wrap:nowrap;}
+}
 </style>
 </head>
 <body>
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+  <div class="mobile-brand"><span class="mlogo">🥭</span>Global Mango</div>
+  <button class="hamburger" id="hamburger" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobile-drawer">
+  <div class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <div class="brand">
+      <div class="brand-logo">🥭</div>
+      <div class="brand-name">Global Mango</div>
+      <div class="brand-sub">System</div>
+      <div class="sync-info"><div class="sync-dot" id="sync-dot-m"></div><span id="sync-label-m">接続中...</span></div>
+    </div>
+    <div>
+      <div class="nav-section">外注さん用</div>
+      <button class="nav-btn active" id="drawer-submit" onclick="drawerNav('submit',this)"><span class="icon">✏️</span>作業を入力する</button>
+      <button class="nav-btn" id="drawer-shift" onclick="drawerNav('shift',this)"><span class="icon">🗓</span>シフト希望を出す</button>
+    </div>
+    <div>
+      <div class="nav-section">管理者用</div>
+      <button class="nav-btn" onclick="drawerRequestPage('history');closeDrawer()"><span class="icon">📋</span>履歴・明細書<span class="lock-icon">🔒</span></button>
+      <button class="nav-btn" onclick="drawerRequestPage('shift-admin');closeDrawer()"><span class="icon">📅</span>シフト管理<span class="lock-icon">🔒</span></button>
+      <button class="nav-btn" onclick="drawerRequestPage('settings');closeDrawer()"><span class="icon">⚙️</span>設定<span class="lock-icon">🔒</span></button>
+    </div>
+    <div style="margin-top:auto;">
+      <button class="btn btn-sm" onclick="forcePull();closeDrawer();" style="background:rgba(255,255,255,.15);color:#fff;border:none;width:100%;">🔄 今すぐ同期</button>
+    </div>
+  </div>
+</div>
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-submit" onclick="showPage('submit',null);setBottomActive('submit')"><span class="bi">✏️</span>作業入力</button>
+    <button class="bnav-btn" id="bnav-shift" onclick="showPage('shift',null);setBottomActive('shift')"><span class="bi">🗓</span>シフト希望</button>
+    <button class="bnav-btn" id="bnav-admin" onclick="openAdminSheet()"><span class="bi">🔒</span>管理者</button>
+  </div>
+</div>
+<!-- ADMIN BOTTOM SHEET -->
+<div class="asheet" id="asheet">
+  <div class="asheet-back" onclick="closeAdminSheet()"></div>
+  <div class="asheet-panel">
+    <div class="asheet-handle"></div>
+    <div class="asheet-title">管理者メニュー 🔒</div>
+    <button class="asheet-btn" onclick="drawerRequestPage('history');closeAdminSheet()"><span>📋</span>履歴・明細書</button>
+    <button class="asheet-btn" onclick="drawerRequestPage('shift-admin');closeAdminSheet()"><span>📅</span>シフト管理</button>
+    <button class="asheet-btn" onclick="drawerRequestPage('settings');closeAdminSheet()"><span>⚙️</span>設定</button>
+  </div>
+</div>
 <div id="sync-bar"></div>
 <div class="sync-toast" id="sync-toast"></div>
 <div class="app-shell">
@@ -577,10 +689,12 @@ async function pullData(){
     setSyncBar('ok');
     document.getElementById('sync-dot').classList.remove('offline');
     document.getElementById('sync-label').textContent='同期済み';
+    updateSyncMobile('ok','同期済み');
   }catch(e){
     setSyncBar('err');
     document.getElementById('sync-dot').classList.add('offline');
     document.getElementById('sync-label').textContent='オフライン';
+    updateSyncMobile('offline','オフライン');
     showToast('❌ 接続失敗');
   }
 }
@@ -1188,6 +1302,37 @@ function exportCSV(){
   f.forEach(r=>{r.items.forEach((it,i)=>{rows.push([r.date,r.name,r.address||'',r.status||'pending',it.name,it.price,it.isHourly?it.qty+'h':it.qty,it.sub,i===0?(r.bonusOn?'有':'無'):'',i===0?r.total:'',i===0?(r.remarks||''):'']);});});
   const bom='\uFEFF',csv=bom+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`GMS_${month||'all'}.csv`;a.click();
+}
+
+
+// ── MOBILE UI ──
+function toggleDrawer(){
+  const d=document.getElementById('mobile-drawer'),h=document.getElementById('hamburger');
+  d.classList.toggle('open');h.classList.toggle('open');
+}
+function closeDrawer(){
+  document.getElementById('mobile-drawer').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+function drawerNav(id,btn){
+  document.querySelectorAll('.drawer-panel .nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  showPage(id,null);setBottomActive(id);closeDrawer();
+}
+function drawerRequestPage(id){
+  requestPage(id,null);
+}
+function setBottomActive(id){
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('bnav-'+id);if(el)el.classList.add('active');
+  const adminPages=['history','shift-admin','settings'];
+  if(adminPages.includes(id))document.getElementById('bnav-admin').classList.add('active');
+}
+function openAdminSheet(){document.getElementById('asheet').classList.add('open');}
+function closeAdminSheet(){document.getElementById('asheet').classList.remove('open');}
+function updateSyncMobile(state,label){
+  const dot=document.getElementById('sync-dot-m');if(dot)dot.className='sync-dot'+(state==='offline'?' offline':'');
+  const lbl=document.getElementById('sync-label-m');if(lbl)lbl.textContent=label;
 }
 
 // ── INIT ──
